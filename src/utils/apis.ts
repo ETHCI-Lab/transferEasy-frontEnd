@@ -1,3 +1,3 @@
 export enum apis{
-    get = "http://localhost:666/document/test"
+    upload = "https://transfer.ethci.app/document/parser"
 }

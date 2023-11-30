@@ -15,19 +15,20 @@
   <div id="content" v-show="status == 2">
     <div class="table" v-for="(table, index) in dataParsed" :key="index">
       <div class="cell" v-for="(cell, index) in table" :key="index">
-        <div
-          class="coloum"
-          v-for="(content, index) in cell"
-          :key="index"
-          v-show="
-            content.content != ':unselected:' && content.content != ':selected:'
-          "
-        >
+        <div class="coloum" v-for="(content, index) in cell" :key="index" v-show="content.content != ':unselected:' && content.content != ':selected:'
+          ">
           {{ content.content }}
         </div>
       </div>
     </div>
   </div>
+  <!-- <el-table :data="dataPaser" v-show="status == 2">
+    <el-table-column v-for="(table, index) in dataParsed" :label="table" :key="index" />
+    <el-table-column v-for="(cell, index) in table" :label="cell" :key="index" />
+    <el-table-column v-for="(content, index) in cell" :label="content" :key="index"
+      v-show="content.content != ':unselected:' && content.content != ':selected:'">
+      {{ content.content }}
+  </el-table> -->
 </template>
 
 <script setup lang="ts">
@@ -37,10 +38,10 @@ import { asyncPatch } from "./utils/fetch";
 import { DocumentTable } from "@azure/ai-form-recognizer";
 import { idToArray } from "./utils/id2Arrary";
 import { simpleContent } from "./utils/content";
-import {BaseMessage,HumanMessage,} from "langchain/schema";
+import { BaseMessage, HumanMessage, } from "langchain/schema";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 // import { data } from "./utils/data";
-import { gradePromptTemplate,JsonToPrompt } from "./utils/gradePromptTemplate";
+import { gradePromptTemplate, JsonToPrompt } from "./utils/gradePromptTemplate";
 
 const file = ref<File>();
 const tables = ref<Array<DocumentTable>>();
@@ -67,7 +68,7 @@ const fileUpdateHandler = (e: Event) => {
 
 const chatModel = new ChatOpenAI({
   openAIApiKey: "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",
-  modelName:"gpt-4-0613"
+  modelName: "gpt-4-0613"
 });
 
 const dataPaser = () => {
@@ -125,19 +126,23 @@ const chat = async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+
   i {
     font-size: 5rem;
     cursor: pointer;
     color: #212121;
     transition: all 0.25s;
+
     &:hover {
       color: rgba(91, 189, 200, 1);
     }
   }
+
   input {
     display: none;
   }
 }
+
 #name {
   font-weight: bold;
   font-size: 1.5rem;
@@ -147,14 +152,17 @@ const chat = async () => {
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
+
   .table {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     align-items: flex-start;
+
     .cell {
       display: flex;
       gap: 0.5rem;
+
       .coloum {
         display: flex;
       }

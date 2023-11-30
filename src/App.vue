@@ -10,8 +10,8 @@
 
   <div id="name" v-show="status == 2">
     {{ file?.name }}
-    <!-- <div class="export" @click="exportDatas">導出</div> -->
   </div>
+
   <div id="content" v-show="status == 2">
     <div class="table" v-for="(table, index) in dataParsed" :key="index">
       <div class="cell" v-for="(cell, index) in table" :key="index">
@@ -34,16 +34,19 @@
 import { onMounted, ref } from "vue";
 import { apis } from "./utils/apis";
 import { asyncPatch } from "./utils/fetch";
-import { DocumentTable, DocumentTableCell } from "@azure/ai-form-recognizer";
+import { DocumentTable } from "@azure/ai-form-recognizer";
 import { idToArray } from "./utils/id2Arrary";
-import { exportData } from "./utils/exportData";
 import { simpleContent } from "./utils/content";
+import {BaseMessage,HumanMessage,} from "langchain/schema";
+import { ChatOpenAI } from "langchain/chat_models/openai";
 // import { data } from "./utils/data";
+import { gradePromptTemplate,JsonToPrompt } from "./utils/gradePromptTemplate";
 
 const file = ref<File>();
 const tables = ref<Array<DocumentTable>>();
-const dataParsed = ref<Array<idToArray<simpleContent>>>([]);
+const dataParsed = ref<Array<idToArray<simpleContent>>>();
 const status = ref<number>(0);
+const messages = ref<Array<BaseMessage>>([]);
 
 const fileUpdateHandler = (e: Event) => {
   const target = e.target as HTMLInputElement;
@@ -62,6 +65,11 @@ const fileUpdateHandler = (e: Event) => {
   }
 };
 
+const chatModel = new ChatOpenAI({
+  openAIApiKey: "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",
+  modelName:"gpt-4-0613"
+});
+
 const dataPaser = () => {
   if (tables.value) {
     const tempData: Array<idToArray<simpleContent>> = [];
@@ -74,7 +82,7 @@ const dataPaser = () => {
         }
         data[cell.rowIndex].push({
           rowIndex: cell.rowIndex,
-          content: cell.content
+          content: cell.content,
         });
       });
 
@@ -82,16 +90,32 @@ const dataPaser = () => {
     });
 
     dataParsed.value = tempData;
+    chat()
   }
 };
 
-// const exportDatas = () => {
-//   exportData(dataParsed.value, `${file.value?.name}.json`);
-// };
+const chat = async () => {
 
-// onMounted(() => {
-//   dataPaser();
-// });
+  const jsongrade = await JsonToPrompt.format({
+    json: JSON.stringify(dataParsed.value),
+  });
+
+  const gradeData = new HumanMessage({ content: jsongrade })
+  messages.value.push(gradeData)
+
+  const gradeInfo = (await chatModel.predictMessages(messages.value)).content;
+
+  const gradePrompt = await gradePromptTemplate.format({
+    grade: gradeInfo,
+  });
+  const prompt = new HumanMessage({ content: gradePrompt })
+  messages.value.push(prompt)
+
+  const chatModelResult = await chatModel.predictMessages(messages.value);
+
+  console.log(chatModelResult.content);
+};
+
 </script>
 
 
@@ -137,4 +161,4 @@ const dataPaser = () => {
     }
   }
 }
-</style>
+</style>./utils/gradePromptTemplate
